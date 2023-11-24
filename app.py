@@ -13,7 +13,9 @@ app_id = '634710'
 # location for production as dictated by the deployment web service used
 # bot certificate
 with open(
-    os.path.normpath(os.path.expanduser('~/Code/certificates_keys/roody_ruler_github_bot.pem')), 
+    # os.path.normpath(os.path.expanduser('~/Code/certificates_keys/roody_ruler_github_bot.pem')), 
+    # 'r'
+    os.path.normpath(os.path.expanduser('/etc/secrets/roody_ruler_github_bot.pem')), 
     'r'
 ) as cert_file:
     app_key = cert_file.read()
