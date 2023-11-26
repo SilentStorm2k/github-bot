@@ -13,14 +13,13 @@ validStatus = ['assigned', 'closed', 'deleted', 'demilestoned', 'edited', 'label
 
 def execute(headers, payload, git_integration):
 
-    # check if event is a Github PR creation event
-    if not all(k in payload.keys() for k in ['action', 'pull_request']) and \
-            payload['action'] == 'opened':
-        return "ok"
-
     owner = payload['repository']['owner']['login']
     repo_name = payload['repository']['name']
+    sender = payload.get("sender", {}).get("login")
 
+    if (sender == "roody-ruler[bot]"):
+        return "Bot message, ignore"
+    
     # Get a git connection as our bot
     # Here is where we are getting the permission to talk to our bot
     # and not as a python webservice
@@ -29,10 +28,20 @@ def execute(headers, payload, git_integration):
             git_integration.get_repo_installation(owner, repo_name).id
         ).token
     )
+        
+    # check if event is a supported Github event by this app
+    if not isValidAction(headers.get('X-GitHub-Event'), payload.get('action')):
+        return "invalid request"
+    
+    return makeMeme(issue_number=payload['number'], git_connection=git_connection, owner=owner, repo_name=repo_name)
+    # return 'ok'
 
+    
+
+def makeMeme(issue_number, git_connection, owner, repo_name):
     repo = git_connection.get_repo(f"{owner}/{repo_name}")
 
-    issue = repo.get_issue(number=payload['number'])
+    issue = repo.get_issue(issue_number)
 
     # prone to change
     # Call meme-api to get a random meme
@@ -50,5 +59,7 @@ def execute(headers, payload, git_integration):
 
 def isValidAction(eventType, eventStatus):
     if (not eventType in validEvents or not eventStatus in validStatus):
-        return 'invalid event: make sure bot has access to ' + eventType
-    return eventType
+        # For debugging:
+        # print("invalid event: make sure bot has access to " + eventType)
+        return False
+    return True
