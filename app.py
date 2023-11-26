@@ -3,6 +3,7 @@ import requests
 
 from flask import Flask, request
 from github import Github, GithubIntegration, Auth
+from actions import execute
 
 app = Flask(__name__)
 
@@ -26,8 +27,13 @@ git_integration = GithubIntegration(auth=auth)
 
 @app.route("/", methods=['POST'])
 def bot():
+
+    # get event headers
+    headers = request.headers
     # get event payload
     payload = request.json
+
+    execute(headers, payload)
 
     # check if event is a Github PR creation event
     if not all(k in payload.keys() for k in ['action', 'pull_request']) and \
