@@ -28,13 +28,18 @@ def execute(headers, payload, git_integration):
             git_integration.get_repo_installation(owner, repo_name).id
         ).token
     )
-        
+    
+    action = headers.get('X-GitHub-Event')
+    status = payload.get('action')
     # check if event is a supported Github event by this app
-    if not isValidAction(headers.get('X-GitHub-Event'), payload.get('action')):
+    if not isValidAction(action, status):
         return "invalid request"
     
-    return makeMeme(issue_number=payload['number'], git_connection=git_connection, owner=owner, repo_name=repo_name)
-    # return 'ok'
+    if action == "issue_comment" and (status == "created" or status == "edited"):
+        if "/meme" in payload.get("comment", {}).get("body"):
+            return makeMeme(issue_number=payload.get("issue", {}).get("number"), git_connection=git_connection, owner=owner, repo_name=repo_name)
+    
+    return 'ok'
 
     
 
