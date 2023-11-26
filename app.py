@@ -2,7 +2,7 @@ import os
 import requests
 
 from flask import Flask, request
-from github import Github, GithubIntegration 
+from github import Github, GithubIntegration, Auth
 
 app = Flask(__name__)
 
@@ -13,18 +13,16 @@ app_id = '634710'
 # location for production as dictated by the deployment web service used
 # bot certificate
 with open(
-    # os.path.normpath(os.path.expanduser('~/Code/certificates_keys/roody_ruler_github_bot.pem')), 
-    # 'r'
-    os.path.normpath(os.path.expanduser('/etc/secrets/roody_ruler_github_bot.pem')), 
+    os.path.normpath(os.path.expanduser('~/Code/certificates_keys/roody_ruler_github_bot.pem')), 
     'r'
+    # os.path.normpath(os.path.expanduser('/etc/secrets/roody_ruler_github_bot.pem')), 
+    # 'r'
 ) as cert_file:
     app_key = cert_file.read()
 
+auth = Auth.AppAuth(app_id, app_key)
 # Create github integration instance
-git_integration = GithubIntegration(
-    app_id,
-    app_key,
-)
+git_integration = GithubIntegration(auth=auth)
 
 @app.route("/", methods=['POST'])
 def bot():
@@ -44,7 +42,7 @@ def bot():
     # and not as a python webservice
     git_connection = Github(
         login_or_token=git_integration.get_access_token(
-            git_integration.get_installation(owner, repo_name).id
+            git_integration.get_repo_installation(owner, repo_name).id
         ).token
     )
 
@@ -66,5 +64,5 @@ def bot():
     return 'ok'
 
 # For testing locally
-# if __name__ == '__main__':
-#     app.run(debug=True, port=5000)
+if __name__ == '__main__':
+    app.run(debug=True, port=5000)
