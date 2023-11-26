@@ -58,7 +58,7 @@ def bot():
 
     # prone to change
     # Call meme-api to get a random meme
-    response = requests.get(url='https://meme-api.com/gimme')
+    response = requests.get(url='https://meme-api.com/gimme/wholesomememes')
 
     if response.status_code != 200:
         return 'ok'
