@@ -1,4 +1,5 @@
 from github import Github, GithubIntegration, Auth
+import requests
 
 validEvents = ['issues', 'issue_comment', 'member', 'installation', 'check_suite', 'discussion', \
                 'discussion_comment', 'pull_request_review', 'pull_request_review_thread', \

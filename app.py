@@ -1,5 +1,4 @@
 import os
-import requests
 
 from flask import Flask, request
 from github import Github, GithubIntegration, Auth
