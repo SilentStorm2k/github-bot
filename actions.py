@@ -1,5 +1,6 @@
 from github import Github, GithubIntegration, Auth
 import requests
+import inspect
 
 validEvents = ['issues', 'issue_comment', 'member', 'installation', 'check_suite', 'discussion', \
                 'discussion_comment', 'pull_request_review', 'pull_request_review_thread', \
@@ -31,13 +32,22 @@ def execute(headers, payload, git_integration):
     
     action = headers.get('X-GitHub-Event')
     status = payload.get('action')
+    valid_bot_commands = {'meme': makeMeme}
+    comment_event = {'issue_comment' : payload.get("issue", {}).get("number"), 
+                     'discussion_comment' : payload.get("discussion", {}).get("number"), 
+                     'pull_request_review_comment' : payload.get("pull_request", {}).get("number")}
     # check if event is a supported Github event by this app
     if not isValidAction(action, status):
         return "invalid request"
     
-    if action == "issue_comment" and (status == "created" or status == "edited"):
-        if "/meme" in payload.get("comment", {}).get("body"):
-            return makeMeme(issue_number=payload.get("issue", {}).get("number"), git_connection=git_connection, owner=owner, repo_name=repo_name)
+    if action in comment_event.keys() and (status == "created" or status == "edited"):
+        bot_commands = bot_commands_to_execute(input_str=payload.get("comment", {}).get("body"))
+        for commands in bot_commands:
+            func = valid_bot_commands.get(commands)
+            if func is not None:
+                func_params = inspect.signature(func).parameters
+                args = [comment_event.get(action), git_connection, owner, repo_name][:len(func_params)]
+                func(*args)
     
     return 'ok'
 
@@ -45,7 +55,6 @@ def execute(headers, payload, git_integration):
 
 def makeMeme(issue_number, git_connection, owner, repo_name):
     repo = git_connection.get_repo(f"{owner}/{repo_name}")
-
     issue = repo.get_issue(issue_number)
 
     # prone to change
@@ -68,3 +77,14 @@ def isValidAction(eventType, eventStatus):
         # print("invalid event: make sure bot has access to " + eventType)
         return False
     return True
+
+def bot_commands_to_execute(input_str):
+    commands = input_str.split()
+    commands_set = set()
+
+    for i, word in enumerate(commands):
+        if word.startswith("/"):
+            commands_set.add(word[1:])  # Adding the word after the '/'
+    
+    return commands_set
+
