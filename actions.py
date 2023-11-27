@@ -16,7 +16,7 @@ def execute(headers, payload, git_integration):
 
     owner = payload['repository']['owner']['login']
     repo_name = payload['repository']['name']
-    sender = payload.get("sender", {}).get("login")
+    sender = payload['sender']['login']
 
     if (sender == "roody-ruler[bot]"):
         return "Bot message, ignore"
@@ -30,9 +30,9 @@ def execute(headers, payload, git_integration):
         ).token
     )
     
-    action = headers.get('X-GitHub-Event')
-    status = payload.get('action')
-    valid_bot_commands = {'meme': make_meme, 'help': send_help_docs}
+    action = headers['X-GitHub-Event']
+    status = payload['action']
+    valid_bot_commands = {'meme': make_meme, 'help': send_help_docs, 'assign': assign_task}
     comment_event = {'issue_comment' : payload.get("issue", {}).get("number"), 
                      'discussion_comment' : payload.get("discussion", {}).get("number"), 
                      'pull_request_review_comment' : payload.get("pull_request", {}).get("number")}
@@ -41,12 +41,13 @@ def execute(headers, payload, git_integration):
         return "invalid request"
     
     if action in comment_event.keys() and (status == "created" or status == "edited"):
-        bot_commands = bot_commands_to_execute(input_str=payload.get("comment", {}).get("body"))
+        body = payload["comment"]["body"]
+        bot_commands = bot_commands_to_execute(input_str=body)
         for commands in bot_commands:
-            func = valid_bot_commands.get(commands)
+            func = valid_bot_commands[commands]
             if func is not None:
                 func_params = inspect.signature(func).parameters
-                args = [comment_event.get(action), git_connection, owner, repo_name][:len(func_params)]
+                args = [comment_event[action], git_connection, owner, repo_name, sender, body][:len(func_params)]
                 func(*args)
     
     return 'ok'
@@ -78,6 +79,37 @@ def send_help_docs(issue_number, git_connection, owner, repo_name):
     f.close()
     return 'ok'
 
+def assign_task(issue_number, git_connection, owner, repo_name, sender, body):
+    repo = git_connection.get_repo(f"{owner}/{repo_name}")
+    issue = repo.get_issue(issue_number)
+    if (not sender == owner):
+        return "invalid access"
+    assignee = get_assignee(body)
+    print(*assignee)
+    if not assignee:
+        send_help_docs(issue_number, git_connection, owner, repo_name)
+    else: 
+        try: 
+            issue.add_to_assignees(*assignee)
+            issue.create_comment(f"Added @{assignee[0]} as an assignee")
+        except:
+            issue.create_comment("Max number of assignees reached")     
+    return 'ok'
+
+def get_assignee(body):
+    assignee = []
+    words = body.split()
+    assign_flag = False
+
+    for word in words:
+        if word == '/assign':
+            assign_flag = True
+        elif assign_flag and word.startswith('@'):
+            assignee.append(word[1:])  # Remove '@' symbol
+            break  # Break the loop after capturing the first name
+        elif assign_flag:
+            break
+    return assignee
 
 def is_valid_action(eventType, eventStatus):
     if (not eventType in validEvents or not eventStatus in validStatus):
