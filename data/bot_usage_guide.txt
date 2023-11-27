@@ -4,11 +4,13 @@
 
 - `/meme`: Requests a wholesome meme.
 - `/help`: Displays available bot commands and their usage.
+- `/assign`: Assigns user to the current issue.
 
 ### Usage Instructions
 
 - **Requesting a Wholesome Meme**: Use `/meme` in an issue's comment.
 - **Help Command**: Use `/help` to see available bot commands.
+- **Assigning someone to the issue**: Use `/assign` followed by @user-name assign (only owner can use /assign)
 
 ### Note
 - Use these commands in issue comments to trigger the bot.
