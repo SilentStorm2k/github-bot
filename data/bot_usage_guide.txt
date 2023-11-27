@@ -1,0 +1,25 @@
+# Roody Ruler Bot Usage Guide
+
+### Available Commands
+
+#### 1. `/meme`
+To request a wholesome meme from Roody Ruler.
+
+#### 2. `/help`
+To see all available bot commands and their usage.
+
+### Usage Instructions
+
+1. **Requesting a Wholesome Meme**:
+   - Use the command `/meme` in the comment section of an issue.
+   - Example: `/meme Get me a wholesome meme, please!`
+
+2. **Help Command**:
+   - Use the command `/help` to see a list of available bot commands.
+   - Example: `/help`
+
+### Note
+- Make sure to use these commands within an issue's comment section to trigger the bot.
+- The bot will respond accordingly based on the command provided.
+
+For further assistance or issues, feel free to reach out to the bot's support team.

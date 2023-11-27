@@ -1,4 +1,4 @@
-from github import Github, GithubIntegration, Auth
+from github import Github
 import requests
 import inspect
 
@@ -70,8 +70,13 @@ def make_meme(issue_number, git_connection, owner, repo_name):
     issue.create_comment(f"![Alt Text]({meme_url})")
     return 'ok'
 
-def send_help_docs():
-    pass
+def send_help_docs(issue_number, git_connection, owner, repo_name):
+    repo = git_connection.get_repo(f"{owner}/{repo_name}")
+    issue = repo.get_issue(issue_number)
+    f = open('data/bot_usage_guide.txt', 'r')
+    issue.create_comment(f.read())
+    f.close()
+    return 'ok'
 
 
 def is_valid_action(eventType, eventStatus):
