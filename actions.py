@@ -32,12 +32,12 @@ def execute(headers, payload, git_integration):
     
     action = headers.get('X-GitHub-Event')
     status = payload.get('action')
-    valid_bot_commands = {'meme': makeMeme}
+    valid_bot_commands = {'meme': make_meme, 'help': send_help_docs}
     comment_event = {'issue_comment' : payload.get("issue", {}).get("number"), 
                      'discussion_comment' : payload.get("discussion", {}).get("number"), 
                      'pull_request_review_comment' : payload.get("pull_request", {}).get("number")}
     # check if event is a supported Github event by this app
-    if not isValidAction(action, status):
+    if not is_valid_action(action, status):
         return "invalid request"
     
     if action in comment_event.keys() and (status == "created" or status == "edited"):
@@ -53,7 +53,7 @@ def execute(headers, payload, git_integration):
 
     
 
-def makeMeme(issue_number, git_connection, owner, repo_name):
+def make_meme(issue_number, git_connection, owner, repo_name):
     repo = git_connection.get_repo(f"{owner}/{repo_name}")
     issue = repo.get_issue(issue_number)
 
@@ -70,8 +70,11 @@ def makeMeme(issue_number, git_connection, owner, repo_name):
     issue.create_comment(f"![Alt Text]({meme_url})")
     return 'ok'
 
+def send_help_docs():
+    pass
 
-def isValidAction(eventType, eventStatus):
+
+def is_valid_action(eventType, eventStatus):
     if (not eventType in validEvents or not eventStatus in validStatus):
         # For debugging:
         # print("invalid event: make sure bot has access to " + eventType)
