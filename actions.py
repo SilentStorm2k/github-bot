@@ -33,7 +33,7 @@ def execute(headers, payload, git_integration):
     
     action = headers['X-GitHub-Event']
     status = payload['action']
-    valid_bot_commands = {'meme': make_meme, 'help': send_help_docs, 'assign': assign_task}
+    valid_bot_commands = {'meme': make_meme, 'help': send_help_docs, 'assign': assign_task, 'label': add_label}
     comment_event = {'issue_comment' : payload.get("issue", {}).get("number"), 
                      'discussion_comment' : payload.get("discussion", {}).get("number"), 
                      'pull_request_review_comment' : payload.get("pull_request", {}).get("number")}
@@ -86,7 +86,6 @@ def assign_task(issue_number, git_connection, owner, repo_name, sender, body):
     if (not sender == owner):
         return "invalid access"
     assignee = get_assignee(body)
-    # print(*assignee)
     if not assignee:
         send_help_docs(issue_number, git_connection, owner, repo_name)
     else: 
@@ -96,6 +95,38 @@ def assign_task(issue_number, git_connection, owner, repo_name, sender, body):
         except:
             issue.create_comment("Max number of assignees reached")     
     return 'ok'
+
+def add_label(issue_number, git_connection, owner, repo_name, sender, body):
+    repo = git_connection.get_repo(f"{owner}/{repo_name}")
+    issue = repo.get_issue(issue_number)
+    if (not sender == owner):
+        return "invalid access"
+    labels = get_labels(body)
+    if not labels:
+        send_help_docs(issue_number, git_connection, owner, repo_name)
+    else: 
+        try: 
+            issue.add_to_labels(*labels)
+            issue.create_comment(f"Added the following labels : {','.join(labels)}")
+        except:
+            issue.create_comment("Invalid/duplicate labels")     
+    return 'ok'
+
+def get_labels(body):
+    labels = []
+    words = body.split()
+    label_flag = False
+    valid_labels = {'bug' : 'bug', 'gfi' : 'good first issue', 'doc' : 'documentation', 'dup' : 'duplicate', \
+                     'enh' : 'enhancement', 'hw' : 'help wanted', 'inv' : 'invalid', 'ques': 'question', 'wf' : 'wontfix'}
+
+    for word in words:
+        if word == '/label':
+            label_flag = True
+        elif label_flag and word in valid_labels.keys():
+            labels.append(valid_labels.get(word))  # Remove '@' symbol
+        else:
+            break
+    return labels
 
 def get_assignee(body):
     assignee = []
