@@ -33,7 +33,8 @@ def execute(headers, payload, git_integration):
     
     action = headers['X-GitHub-Event']
     status = payload['action']
-    valid_bot_commands = {'meme': make_meme, 'help': send_help_docs, 'assign': assign_task, 'label': add_label}
+    valid_bot_commands = {'meme': make_meme, 'help': send_help_docs, 'assign': assign_task, 'label': add_label, 
+                          'clear_assignees': clear_assignees, 'clear_labels': clear_labels, 'clear' : clear}
     comment_event = {'issue_comment' : payload.get("issue", {}).get("number"), 
                      'discussion_comment' : payload.get("discussion", {}).get("number"), 
                      'pull_request_review_comment' : payload.get("pull_request", {}).get("number")}
@@ -112,11 +113,44 @@ def add_label(issue_number, git_connection, owner, repo_name, sender, body):
             issue.create_comment("Invalid/duplicate labels")     
     return 'ok'
 
+def clear_assignees(issue_number, git_connection, owner, repo_name, sender):
+    repo = git_connection.get_repo(f"{owner}/{repo_name}")
+    issue = repo.get_issue(issue_number)
+    if (not sender == owner):
+        return "invalid access"
+    assignees = repo.get_assignees()
+    try:
+        issue.remove_from_assignees(*assignees)
+    except requests.HTTPError as err:
+        print("HTTP Error:", err)
+        return 'error'
+    return 'ok'
+
+def clear_labels(issue_number, git_connection, owner, repo_name, sender):
+    repo = git_connection.get_repo(f"{owner}/{repo_name}")
+    issue = repo.get_issue(issue_number)
+    if (not sender == owner):
+        return "invalid access"
+    try:
+        issue.delete_labels()
+    except requests.HTTPError as err:
+        if err.response.status_code == 204:
+            issue.create_comment("No labels to remove")
+        else:
+            print("HTTP Error:", err)
+            return 'error'
+    return 'ok'
+
+def clear(issue_number, git_connection, owner, repo_name, sender):
+    clear_labels(issue_number, git_connection, owner, repo_name, sender)
+    clear_assignees(issue_number, git_connection, owner, repo_name, sender)
+    return 'ok'
+
 def get_labels(body):
     labels = []
     words = body.split()
     label_flag = False
-    valid_labels = {'bug' : 'bug', 'gfi' : 'good first issue', 'doc' : 'documentation', 'dup' : 'duplicate', \
+    valid_labels = {'bug' : 'bug', 'gfi' : 'good first issue', 'doc' : 'documentation', 'dup' : 'duplicate', 
                      'enh' : 'enhancement', 'hw' : 'help wanted', 'inv' : 'invalid', 'ques': 'question', 'wf' : 'wontfix'}
 
     for word in words:
