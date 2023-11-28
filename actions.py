@@ -34,7 +34,8 @@ def execute(headers, payload, git_integration):
     action = headers['X-GitHub-Event']
     status = payload['action']
     valid_bot_commands = {'meme': make_meme, 'help': send_help_docs, 'assign': assign_task, 'label': add_label, 
-                          'clear_assignees': clear_assignees, 'clear_labels': clear_labels, 'clear' : clear}
+                          'clear_assignees': clear_assignees, 'clear_labels': clear_labels, 'clear' : clear,
+                          'close' : close}
     comment_event = {'issue_comment' : payload.get("issue", {}).get("number"), 
                      'discussion_comment' : payload.get("discussion", {}).get("number"), 
                      'pull_request_review_comment' : payload.get("pull_request", {}).get("number")}
@@ -144,6 +145,17 @@ def clear_labels(issue_number, git_connection, owner, repo_name, sender):
 def clear(issue_number, git_connection, owner, repo_name, sender):
     clear_labels(issue_number, git_connection, owner, repo_name, sender)
     clear_assignees(issue_number, git_connection, owner, repo_name, sender)
+    return 'ok'
+
+def close(issue_number, git_connection, owner, repo_name, sender):
+    repo = git_connection.get_repo(f"{owner}/{repo_name}")
+    issue = repo.get_issue(issue_number)
+    if (not sender == owner):
+        return "invalid access"
+    try:
+        issue.edit(state = 'closed')
+    except:
+        return 'error in closing'
     return 'ok'
 
 def get_labels(body):
