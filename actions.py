@@ -85,7 +85,7 @@ def assign_task(issue_number, git_connection, owner, repo_name, sender, body):
     if (not sender == owner):
         return "invalid access"
     assignee = get_assignee(body)
-    print(*assignee)
+    # print(*assignee)
     if not assignee:
         send_help_docs(issue_number, git_connection, owner, repo_name)
     else: 
