@@ -22,3 +22,10 @@ smee -u https://smee.io/AYpFuB1lI7uH9msO --port 5000
 ```
 7. Run `app.py` on port 5000 (or the designated port Smee directs payloads to).
 8. Test by typing in "/meme" in any issue/pr/discussion 
+
+## Deploying on render:
+
+1. Change webhook url in github app settings to https://silentstorm-bot.onrender.com 
+2. Remove local testing instances in app.py and other files (such as if name == __main__)
+3. Change cert_file file location to the correct format (by uncommenting correct value)
+4. Push code to main and wait for deployment.
