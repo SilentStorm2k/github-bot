@@ -1,6 +1,7 @@
 from github import Github
 import requests
 import inspect
+import os
 
 validEvents = ['issues', 'issue_comment', 'member', 'installation', 'check_suite', 'discussion', \
                 'discussion_comment', 'pull_request_review', 'pull_request_review_thread', \
@@ -74,7 +75,7 @@ def make_meme(issue_number, git_connection, owner, repo_name):
 def send_help_docs(issue_number, git_connection, owner, repo_name):
     repo = git_connection.get_repo(f"{owner}/{repo_name}")
     issue = repo.get_issue(issue_number)
-    f = open('github-bot/data/bot_usage_guide.txt', 'r')
+    f = open(os.path.join(os.getcwd(), 'data', 'bot_usage_guide.txt'), 'r')
     issue.create_comment(f.read())
     f.close()
     return 'ok'
