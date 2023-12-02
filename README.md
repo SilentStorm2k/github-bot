@@ -29,3 +29,9 @@ smee -u https://smee.io/AYpFuB1lI7uH9msO --port 5000
 2. Remove local testing instances in app.py and other files (such as if name == __main__)
 3. Change cert_file file location to the correct format (by uncommenting correct value)
 4. Push code to main and wait for deployment.
+
+## Future additions and helpful links:
+
+https://coverage.readthedocs.io/en/7.3.2/ 
+https://pygithub.readthedocs.io/en/stable/
+https://medium.com/@gilharomri/github-app-bot-with-python-ea38811d7b14 (inspired from)
