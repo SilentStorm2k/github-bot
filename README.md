@@ -21,3 +21,4 @@ npm install --global smee-client
 smee -u https://smee.io/AYpFuB1lI7uH9msO --port 5000
 ```
 7. Run `app.py` on port 5000 (or the designated port Smee directs payloads to).
+8. Test by typing in "/meme" in any issue/pr/discussion 
